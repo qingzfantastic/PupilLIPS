@@ -1,50 +1,36 @@
-# PupilLIPS Package
+# PupilLIPS
 
-An internal R package for preprocessing pupillometry data in the lab. This package provides essential functions for analyzing and preprocessing pupil diameter data without external dependencies.
+A professional R package for preprocessing pupillometry data. This package provides essential functions for analyzing and preprocessing pupil diameter data, replacing the need for external gazeR dependencies.
 
 ## Installation
-
-### From GitHub (Recommended)
 
 ```r
 # Install devtools if you don't have it
 if (!require("devtools")) install.packages("devtools")
 
-# Install the package from GitHub
-devtools::install_github("your-username/PupilLIPS")
-```
+# Install PupilLIPS from GitHub
+devtools::install_github("qingzfantastic/PupilLIPS")
 
-### From Local Source
-
-```r
-# Navigate to the package directory
-setwd("path/to/lab_pupillometry_package")
-
-# Install the package
-devtools::install()
+# Load the package
+library(PupilLIPS)
 ```
 
 ## Functions
 
-### 1. `count_missing_pupil`
-Original gazeR function for basic missing data analysis.
+### Core Functions
 
+**`count_missing_pupil`** - Original gazeR function for basic missing data analysis
 ```r
 filtered_data <- count_missing_pupil(
   datafile = pupil_data,
-  pupil = "pupil_diameter",
-  participant_thresh = 0.2,
-  trial_thresh = 0.2
+  missingthresh = 0.2
 )
 ```
 
-### 2. `count_missing_pupil_different_thresholds`
-Enhanced version with additional exclusion criteria and researcher confirmation.
-
+**`count_missing_pupil_different_thresholds`** - Enhanced version with researcher confirmation
 ```r
 filtered_data <- count_missing_pupil_different_thresholds(
   datafile = pupil_data,
-  pupil = "pupil_diameter",
   participant_thresh = 0.15,
   trial_thresh = 0.25,
   participant_trial_threshold = 0.2,
@@ -52,57 +38,84 @@ filtered_data <- count_missing_pupil_different_thresholds(
 )
 ```
 
-### 3. `extend_blinks`
-Extend blink periods with padding before and after detected blinks.
-
+**`extend_blinks`** - Extend blink periods with padding
 ```r
-extended_blinks <- extend_blinks(
-  blinks = blink_vector,
-  pre_padding = 50,
-  post_padding = 50
+extended_data <- extend_blinks(
+  values = pupil_data,
+  fillback = 200,
+  fillforward = 100,
+  hz = 1000
 )
 ```
 
-### 4. `interpolate_pupil`
-Interpolate missing or blink-affected pupil data.
-
+**`interpolate_pupil`** - Interpolate missing or blink-affected pupil data
 ```r
 interpolated_data <- interpolate_pupil(
-  pupil_data = pupil_diameter,
-  blinks = blink_vector,
-  method = "linear",
-  max_gap = 100
+  datafile = pupil_data,
+  pupil = "pupil",
+  subject = "subject",
+  trial = "trial",
+  extendblinks = TRUE,
+  type = "linear",
+  hz = 1000
 )
 ```
 
-### 5. `moving_average_pupil`
-Apply moving average smoothing to reduce noise.
-
+**`moving_average_pupil`** - Apply moving average smoothing
 ```r
 smoothed_data <- moving_average_pupil(
-  pupil_data = pupil_diameter,
-  window_size = 5,
-  method = "mean",
-  align = "center"
+  x = pupil_data,
+  n = 5,
+  centered = TRUE
 )
 ```
 
-### 6. `baseline_correction_pupil`
-Perform baseline correction on pupil data.
-
+**`baseline_correction_pupil`** - Perform baseline correction
 ```r
 corrected_data <- baseline_correction_pupil(
-  pupil_data = pupil_diameter,
-  time_vector = time_ms,
+  datafile = pupil_data,
+  pupil_colname = "pupil",
   baseline_window = c(-200, 0),
-  stimulus_onset = 1000,
-  method = "subtract"
+  baseline_method = "sub"
+)
+```
+
+## Complete Preprocessing Pipeline
+
+```r
+library(PupilLIPS)
+
+# 1. Count missing data and filter
+filtered_data <- count_missing_pupil_different_thresholds(
+  datafile = pupil_data,
+  participant_thresh = 0.2,
+  trial_thresh = 0.2
+)
+
+# 2. Extend blinks
+alldata <- filtered_data %>% 
+  group_by(subject, trial) %>% 
+  mutate(extendpupil = extend_blinks(pupil, fillback = 200, fillforward = 100, hz = 1000))
+
+# 3. Interpolate missing data
+alldata <- interpolate_pupil(alldata, extendblinks = TRUE, type = "linear")
+
+# 4. Apply smoothing
+rolling_mean_data <- alldata %>%
+  mutate(movingavgpup = moving_average_pupil(pupil, n = 5))
+
+# 5. Baseline correction
+baseline_data <- baseline_correction_pupil(
+  rolling_mean_data, 
+  pupil_colname = "movingavgpup", 
+  baseline_window = c(-500, 0), 
+  baseline_method = "sub"
 )
 ```
 
 ## Dependencies
 
-The package requires the following R packages:
+The package requires:
 - dplyr
 - ggplot2
 - tidyr
@@ -111,48 +124,18 @@ The package requires the following R packages:
 - zoo
 - data.table
 
-## Usage Example
+## Features
 
-```r
-# Load the package
-library(PupilLIPS)
-
-# Load your pupil data
-pupil_data <- read.csv("your_pupil_data.csv")
-
-# Apply the complete preprocessing pipeline
-# 1. Count missing data and filter
-filtered_data <- count_missing_pupil_different_thresholds(
-  datafile = pupil_data,
-  pupil = "pupil_diameter"
-)
-
-# 2. Detect and extend blinks
-blinks <- detect_blinks(filtered_data$pupil_diameter)
-extended_blinks <- extend_blinks(blinks)
-
-# 3. Interpolate missing data
-interpolated_data <- interpolate_pupil(
-  filtered_data$pupil_diameter,
-  extended_blinks
-)
-
-# 4. Apply smoothing
-smoothed_data <- moving_average_pupil(interpolated_data)
-
-# 5. Baseline correction
-corrected_data <- baseline_correction_pupil(
-  smoothed_data,
-  time_vector = filtered_data$time_ms,
-  baseline_window = c(-200, 0),
-  stimulus_onset = 1000
-)
-```
-
-## Contributing
-
-This is an internal lab package. Please contact the lab supervisor for contributions.
+- **No external dependencies** - Replaces gazeR completely
+- **Professional quality** - Clean, documented functions
+- **Easy installation** - One line from GitHub
+- **Lab-ready** - Designed for research use
+- **Open source** - Available to the research community
 
 ## License
 
 MIT License - see LICENSE file for details.
+
+## Contributing
+
+This package is open for contributions. Please feel free to submit issues or pull requests.
