@@ -3,7 +3,7 @@ Type: Package
 Title: PupilLIPS - Lab Internal Pupillometry Processing System
 Version: 1.0.0
 Date: 2024-12-19
-Authors@R: person("Your Name", "Your Role", email = "your.email@institution.edu")
+Authors@R: person("Qing Zhao", "aut", email = "qingzhao0823@gmail.com")
 Description: Internal R package for preprocessing pupillometry data in the lab.
     Provides essential functions for analyzing and preprocessing pupil diameter data
     without external dependencies. Includes functions for missing data analysis,
