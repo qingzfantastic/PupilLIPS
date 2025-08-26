@@ -3,7 +3,7 @@ Type: Package
 Title: PupilLIPS - Lab Internal Pupillometry Processing System
 Version: 1.0.0
 Date: 2024-12-19
-Authors@R: person("Qing Zhao", "aut", "cre", email = "qingzhao0823@gmail.com")
+Authors@R: c(person("Qing Zhao", "aut", "cre", email = "qingzhao0823@gmail.com"))
 Maintainer: Qing Zhao <qingzhao0823@gmail.com>
 Description: Internal R package for preprocessing pupillometry data in the lab.
     Provides essential functions for analyzing and preprocessing pupil diameter data
@@ -13,19 +13,7 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.2.3
-Roxygen: list(markdown = TRUE)
-Depends: 
-    R (>= 4.0.0)
-Imports: 
-    dplyr,
-    ggplot2,
-    tidyr,
-    readr,
-    signal,
-    zoo,
-    data.table
-Suggests: 
-    testthat,
-    knitr,
-    rmarkdown
+Depends: R (>= 4.0.0)
+Imports: dplyr, ggplot2, tidyr, readr, signal, zoo, data.table
+Suggests: testthat, knitr, rmarkdown
 VignetteBuilder: knitr
