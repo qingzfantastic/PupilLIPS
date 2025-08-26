@@ -1,77 +1,61 @@
-#' Apply Moving Average Smoothing to Pupil Data
+#' Moving average function
 #'
-#' This function applies moving average smoothing to pupil diameter data
-#' to reduce noise and artifacts while preserving the underlying signal.
+#' Creates a moving average using a specified averageing window
+#' if n is 5, then it uses the target value, 2 preceding and 2 following
 #'
-#' @param pupil_data Vector of pupil diameter values
-#' @param window_size Window size for moving average (default: 5)
-#' @param method Smoothing method: "mean", "median", or "gaussian" (default: "mean")
-#' @param align Alignment of the window: "left", "center", or "right" (default: "center")
-#'
-#' @return Smoothed pupil data vector
+#' @param x data
+#' @param n sed for moving window
+#' @param centered whether moving average window should be centered (TRUE) or trailing (FALSE)
+#' @return return sum divided by count
 #' @export
-#'
-#' @examples
-#' \dontrun{
-#' # Example usage
-#' smoothed_data <- moving_average_pupil(
-#'   pupil_data = pupil_diameter,
-#'   window_size = 5,
-#'   method = "mean"
-#' )
-#' }
-moving_average_pupil <- function(pupil_data, window_size = 5, 
-                                 method = "mean", align = "center") {
-  message("Applying moving average smoothing with window size: ", window_size)
-  
-  # Ensure window size is odd for center alignment
-  if (align == "center" && window_size %% 2 == 0) {
-    window_size <- window_size + 1
-    message("Adjusted window size to ", window_size, " for center alignment")
+moving_average_pupil <- function(x, n=5, centered=TRUE) {
+
+  if (centered) {
+    before <- floor  ((n-1)/2)
+    after  <- ceiling((n-1)/2)
+  } else {
+    before <- n-1
+    after  <- 0
   }
-  
-  # Calculate half window size
-  half_window <- floor(window_size / 2)
-  
-  # Initialize smoothed data
-  smoothed_data <- pupil_data
-  
-  # Apply smoothing
-  for (i in seq_along(pupil_data)) {
-    # Define window boundaries
-    if (align == "left") {
-      start_idx <- i
-      end_idx <- min(i + window_size - 1, length(pupil_data))
-    } else if (align == "center") {
-      start_idx <- max(1, i - half_window)
-      end_idx <- min(length(pupil_data), i + half_window)
-    } else { # right alignment
-      start_idx <- max(1, i - window_size + 1)
-      end_idx <- i
-    }
-    
-    # Get window data
-    window_data <- pupil_data[start_idx:end_idx]
-    window_data <- window_data[!is.na(window_data)]
-    
-    if (length(window_data) > 0) {
-      if (method == "mean") {
-        smoothed_data[i] <- mean(window_data)
-      } else if (method == "median") {
-        smoothed_data[i] <- median(window_data)
-      } else if (method == "gaussian") {
-        # Simple gaussian weighting
-        weights <- dnorm(seq_along(window_data), mean = mean(seq_along(window_data)), 
-                        sd = length(window_data) / 3)
-        weights <- weights / sum(weights)
-        smoothed_data[i] <- sum(window_data * weights)
-      } else {
-        warning("Unknown method '", method, "'. Using mean.")
-        smoothed_data[i] <- mean(window_data)
-      }
-    }
+
+  # Track the sum and count of number of non-NA items
+  s     <- rep(0, length(x))
+  count <- rep(0, length(x))
+
+  # Add the centered data
+  new <- x
+  # Add to count list wherever there isn't a
+  count <- count + !is.na(new)
+  # Now replace NA_s with 0_s and add to total
+  new[is.na(new)] <- 0
+  s <- s + new
+
+  # Add the data from before
+  i <- 1
+  while (i <= before) {
+    # This is the vector with offset values to add
+    new   <- c(rep(NA, i), x[1:(length(x)-i)])
+
+    count <- count + !is.na(new)
+    new[is.na(new)] <- 0
+    s <- s + new
+
+    i <- i+1
   }
-  
-  message("Smoothing complete using ", method, " method")
-  return(smoothed_data)
+  #
+  # Add the data from after
+  i <- 1
+  while (i <= after) {
+    # This is the vector with offset values to add
+    new   <- c(x[(i+1):length(x)], rep(NA, i))
+
+    count <- count + !is.na(new)
+    new[is.na(new)] <- 0
+    s <- s + new
+
+    i <- i+1
+  }
+
+  # return sum divided by count
+  s/count
 }
