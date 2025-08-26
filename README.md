@@ -1,6 +1,6 @@
 # PupilLIPS
 
-A professional R package for preprocessing pupillometry data. This package provides essential functions for analyzing and preprocessing pupil diameter data, replacing the need for external gazeR dependencies.
+Internal use R package ONLY!!
 
 ## Installation
 
@@ -123,19 +123,3 @@ The package requires:
 - signal
 - zoo
 - data.table
-
-## Features
-
-- **No external dependencies** - Replaces gazeR completely
-- **Professional quality** - Clean, documented functions
-- **Easy installation** - One line from GitHub
-- **Lab-ready** - Designed for research use
-- **Open source** - Available to the research community
-
-## License
-
-MIT License - see LICENSE file for details.
-
-## Contributing
-
-This package is open for contributions. Please feel free to submit issues or pull requests.
