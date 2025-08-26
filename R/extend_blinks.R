@@ -3,24 +3,37 @@
 #' This function extends blink periods by adding padding before and after detected blinks
 #' to ensure complete coverage of blink artifacts.
 #'
-#' @param blinks Logical vector indicating blink periods (TRUE = blink, FALSE = no blink)
-#' @param pre_padding Number of samples to extend before blink onset (default: 50)
-#' @param post_padding Number of samples to extend after blink offset (default: 50)
+#' @param pupil Vector of pupil diameter values
+#' @param fillback Number of milliseconds to extend before blink onset (default: 200)
+#' @param fillforward Number of milliseconds to extend after blink offset (default: 100)
+#' @param hz Sampling rate in Hz (default: 1000)
 #'
-#' @return Logical vector with extended blink periods
+#' @return Vector with extended blink periods
 #' @export
 #'
 #' @examples
 #' \dontrun{
 #' # Example usage
 #' extended_blinks <- extend_blinks(
-#'   blinks = blink_vector,
-#'   pre_padding = 50,
-#'   post_padding = 50
+#'   pupil = pupil_data,
+#'   fillback = 200,
+#'   fillforward = 100,
+#'   hz = 1000
 #' )
 #' }
-extend_blinks <- function(blinks, pre_padding = 50, post_padding = 50) {
+extend_blinks <- function(pupil, fillback = 200, fillforward = 100, hz = 1000) {
   message("Extending blink periods...")
+  
+  # Convert milliseconds to samples
+  pre_padding <- round(fillback * hz / 1000)
+  post_padding <- round(fillforward * hz / 1000)
+  
+  # Simple blink detection based on rapid changes
+  pupil_diff <- diff(pupil)
+  blinks <- abs(pupil_diff) > 0.5
+  
+  # Expand to match original data length
+  blinks <- c(FALSE, blinks)
   
   # Find blink onset and offset
   blink_changes <- diff(c(FALSE, blinks, FALSE))
