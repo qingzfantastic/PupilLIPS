@@ -1,0 +1,14 @@
+# R package specific files to ignore
+*.Rproj
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+
+# macOS system files
+.DS_Store
+
+# R package build artifacts (optional - you can remove these if you want to track them)
+# *.tar.gz
+# *.zip
+# *.tgz
